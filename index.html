@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Simple Calculator</title>
+    <style>
+        body{
+            background:linear-gradient(135deg, #667eea,#754a9f)
+        }
+        .glass{
+            background:rgb(149, 159, 250);
+            backdrop-filter:blur(100px);
+            
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-3 py-6">
+    
+    <div class="glass w-full p-4 sm:p-6 md:p-8 rounded-3xl shadow-2xl text-white">
+        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-5 text-black"
+        >Smart To-do Manager</h1>
+
+        <!--Add task section-->
+        <div class="flex flex-col gap-3 mb-4">
+            <input type="text" placeholder="Enter the tasks "
+            class="p-3 rounded-xl text-black outline-none"
+            >
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select id="categoryInput"
+                class="p-3 rounded-xl text-black outline-none w-full">
+                   <option value="work">Work</option>
+                   <option value="personal">Personal</option>
+                </select>
+
+                <input type="date" id="dateInput"
+                class="p-3 rounded-xl text-black outline-none w-full"/>
+
+            </div>
+            
+
+        </div>
+        <button onclick="addTask()" 
+            class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 transition font-semibold">
+             + Add Task 
+        </button>
+
+        <!--Search & Filter -->
+        <div class="flex flex-col sm:flex-row gap-3 mt-6 mb-6 ">
+            <input type="text" id="searchInput" placeholder="Search"
+            oninput="renderTask()"
+            class="p-3 rounded-lg text-black outline-none w-full"
+            />
+             
+            <select id="filterStatus"
+            onchange="renderTask()"
+            class="p-3 text-black rounded-xl outline-none w-full "
+            
+            >
+        <option value="All">All Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Completed">Completeed</option>
+    </select>
+
+    <select id="filterCategory"
+    onchange="renderTask()"
+    class="p-3 rounded-xl text-black outline-none w-full "
+    >
+        <option value="All">All Categorys</option>
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+    </select>
+
+        </div>
+    <!--Task list -->
+    <ul id="tasklist" class="space-y-4"></ul>
+
+    </div>
+    <script>
+        let tasks=[];
+        async function loadTasks(){
+            const res = await fetch("http://localhost:3000/tasks")
+            tasks= res.json(res);
+            renderTask();
+        }
+
+        async function addTask(){
+            const text = document.getElementById("taskInput").value.trim();
+            const category = document.getElementById("categoryInput").value;
+            const date = document.getElementById("dateInput");
+            
+            if(!text) return;
+            //Validating the input 
+            const task = {
+                id: Date.now(),
+                text,
+                category,
+                date,
+                status:"pending",
+            };
+
+            await fetch("http://localhost:3000/tasks", {
+                method:"POST",
+                headers:{"content-Type":"application/json"},
+                body: JSON.stringify(task)
+            });
+
+            loadTasks();
+
+        }
+
+        async function deleteTask(id){
+            await fetch('http:localhost:3000/tasks/${id}',{
+                method:"DELETE",
+                
+            });
+
+            loadTasks();
+        }
+
+        async function toggleStatus(id){
+            const task = tasks.find(t=>t.id===id);
+            if(!task) return;
+
+            const updatedTask = {
+                ...task,
+                status: test.status==="Pending" ? "completed" ? "pending"
+
+            };
+
+            await fetch('http://localhost:3000/tasks/${id}',{
+                method:"PUT",
+                header:{"content-type":"application/json"},
+                body: JSON.stringify(updatedTask)
+
+            });
+
+            loadTasks();
+
+        }
+        loadTasks();
+
+        function renderTask(){
+            const list = document.getElementById("taskList");
+            const search = document.getElementById("searchInput").value.tolowercase();
+            const statusFilter = document.getElementById("filterStatus").value;
+            const categoryFilter = document.getElementById("filterCategory");
+
+            list.innerHTML = "";
+
+            const filtered = tasks.filter(task=>
+               task.text.tolowercase().includes(search) && 
+               (statusFilter==="All" || task.status===statusFilter) &&
+               (categoryFilter==="All" || task.category === categoryFilter)
+             );
+
+             if(!filter.length){
+                list.innerHTML='<p class="text-center text-white/70"> No tasks found</p>';
+                return;
+
+             }
+
+             filtered.forEach(task=>{
+
+                const li = document.createElement("li");
+                li.className="bg-white text-black p-4 sm:p-5 rounded-2xl shadow-lg";
+
+                li.innerHTML = '<div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3> </div>"'
+             })
+        }
+    </script>
+</body>         
+</html>
